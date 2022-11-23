@@ -10,8 +10,18 @@ const api = axios.create({
 
 
 // Utils
-
-function createMovies(movies, container) {
+const lazyLoader = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    // console.log(entry.target.setAttribute);
+    if(entry.isIntersecting){
+      const url = entry.target.getAttribute('data-img')
+      // console.log(entry.target)
+      entry.target.setAttribute('src', url);
+    }
+  })
+});
+function createMovies(movies, container, lazyLoad = false) {
+  
   container.innerHTML = '';
 
   movies.forEach(movie => {
@@ -24,11 +34,14 @@ function createMovies(movies, container) {
     const movieImg = document.createElement('img');
     movieImg.classList.add('movie-img');
     movieImg.setAttribute('alt', movie.title);
-    movieImg.setAttribute(
-      'src',
-      'https://image.tmdb.org/t/p/w300' + movie.poster_path,
-    );
-
+    if(movie.poster_path === null){
+      movieImg.setAttribute('src', 'https://cringemdb.com/img/movie-poster-placeholder.png')
+    }else{
+      movieImg.setAttribute(lazyLoad ? 'data-img' :  'src','https://image.tmdb.org/t/p/w300' + movie.poster_path);
+    }
+      if(lazyLoad){
+        lazyLoader.observe(movieImg);
+      }
     movieContainer.appendChild(movieImg);
     container.appendChild(movieContainer);
   });
@@ -55,6 +68,7 @@ function createCategories(categories, container) {
   });
 }
 
+
 // Llamados a la API
 
 async function getTrendingMoviesPreview() {
@@ -62,7 +76,7 @@ async function getTrendingMoviesPreview() {
   const movies = data.results;
   console.log(movies)
 
-  createMovies(movies, trendingMoviesPreviewList);
+  createMovies(movies, trendingMoviesPreviewList, true);
 }
 
 async function getCategegoriesPreview() {
@@ -90,14 +104,13 @@ async function getMoviesBySearch(query) {
     },
   });
   const movies = data.results;
-
-  createMovies(movies, genericSection);
+  
+  createMovies(movies, genericSection, true);
 }
 
 async function getTrendingMovies() {
   const { data } = await api('trending/movie/day');
   const movies = data.results;
-
   createMovies(movies, genericSection);
 }
 
@@ -130,3 +143,4 @@ async function getRelatedMoviesId(id) {
 
   createMovies(relatedMovies, relatedMoviesContainer);
 }
+

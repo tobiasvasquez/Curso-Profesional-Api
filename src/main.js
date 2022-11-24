@@ -21,7 +21,7 @@ const lazyLoader = new IntersectionObserver((entries) => {
   })
 });
 function createMovies(movies, container, lazyLoad = false) {
-  
+  console.log('test');
   container.innerHTML = '';
 
   movies.forEach(movie => {
